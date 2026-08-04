@@ -468,6 +468,31 @@ footer.foot{margin-top:50px; padding-top:18px; border-top:1px solid var(--line);
   .empty{display:none !important;}
   a[href]:after{content:'';}
 }
+
+.sb-section-data{ display:none !important; }
+.sb-data-lock{
+  border-top:1px solid rgba(255,255,255,0.12); margin-top:auto; padding:16px 18px 18px;
+  display:flex; flex-direction:column; gap:10px; align-items:stretch;
+}
+.sb-data-lock .lock-label{
+  font-size:11px; letter-spacing:.08em; text-transform:uppercase; opacity:.75;
+  display:flex; align-items:center; gap:6px;
+}
+.sb-data-lock input{
+  width:100%; box-sizing:border-box; padding:8px 10px; border-radius:8px;
+  border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.08); color:#fff;
+  font-size:13px; text-align:center; letter-spacing:2px;
+}
+.sb-data-lock input::placeholder{ color:rgba(255,255,255,0.5); }
+.sb-data-lock input:focus{ outline:2px solid #fff; }
+.sb-data-lock button{
+  width:100%; padding:8px 10px; border-radius:8px; border:none; cursor:pointer;
+  background:#fff; color:#0E3B36; font-weight:700; font-size:12.5px;
+}
+.sb-data-lock .lock-error{ font-size:11px; color:#ffb4a8; min-height:13px; text-align:center; }
+.sb-data-lock.unlocked{ display:none; }
+.sb-section-data.unlocked{ display:block !important; }
+.sidebar.collapsed .sb-data-lock{ display:none; }
 </style>
 </head>
 <body>
@@ -499,6 +524,13 @@ footer.foot{margin-top:50px; padding-top:18px; border-top:1px solid var(--line);
     <div class="sb-section-print">
       <button id="printBtn" class="sb-print-btn" title="Yönetim sunumu / PDF için yazdırma görünümü">⎙ Yazdır / PDF Olarak Kaydet</button>
       <div class="sb-stamp" id="pageStamp">Veri yüklenmedi</div>
+    </div>
+
+    <div class="sb-data-lock" id="sbDataLock">
+      <div class="lock-label">🔒 Veri Kaynağı (Kilitli)</div>
+      <input type="password" id="sbDataLockInput" placeholder="Şifre" autocomplete="off">
+      <button id="sbDataLockSubmit">Aç</button>
+      <div class="lock-error" id="sbDataLockError"></div>
     </div>
 
     <div class="sb-section sb-section-data" style="margin-top:auto;">
@@ -2038,6 +2070,28 @@ renderAll();
   showFatalError((fatalErr && fatalErr.message) ? fatalErr.message : 'Panel başlatılırken beklenmeyen bir hata oluştu.');
 }
 
+})();
+</script>
+<script>
+(function(){
+  var CORRECT_PASSWORD = "2021";
+  var lockBox = document.getElementById('sbDataLock');
+  var panel = document.querySelector('.sb-section-data');
+  var input = document.getElementById('sbDataLockInput');
+  var submitBtn = document.getElementById('sbDataLockSubmit');
+  var errorEl = document.getElementById('sbDataLockError');
+  function tryUnlock(){
+    if(input.value === CORRECT_PASSWORD){
+      lockBox.classList.add('unlocked');
+      panel.classList.add('unlocked');
+    } else {
+      errorEl.textContent = 'Şifre yanlış.';
+      input.value = '';
+      input.focus();
+    }
+  }
+  submitBtn.addEventListener('click', tryUnlock);
+  input.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ tryUnlock(); } });
 })();
 </script>
 </body>
