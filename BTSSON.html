@@ -456,6 +456,34 @@
     max-width:420px; text-align:center;
   }
   #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .datasource-panel{ display:none !important; }
+  .ds-lock{
+    border-top:1px solid var(--line); background:var(--blue-tint);
+    padding:14px 14px 16px; margin-top:auto;
+    display:flex; flex-direction:column; gap:10px; align-items:stretch;
+  }
+  .ds-lock .ds-lock-label{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-soft); display:flex; align-items:center; gap:6px;
+  }
+  .ds-lock input{
+    width:100%; box-sizing:border-box; padding:8px 10px; border-radius:9px;
+    border:1px solid var(--line); font-size:13px; text-align:center; letter-spacing:2px;
+  }
+  .ds-lock input:focus{ outline:2px solid var(--blue); border-color:var(--blue); }
+  .ds-lock button{
+    width:100%; padding:8px 10px; border-radius:9px; border:none; cursor:pointer;
+    background:var(--blue); color:#fff; font-weight:600; font-size:12.5px;
+  }
+  .ds-lock .ds-lock-error{ font-size:11px; color:var(--coral); min-height:13px; text-align:center; }
+  .sidebar.collapsed .ds-lock .ds-lock-label span,
+  .sidebar.collapsed .ds-lock input,
+  .sidebar.collapsed .ds-lock button,
+  .sidebar.collapsed .ds-lock .ds-lock-error{ display:none; }
+  .sidebar.collapsed .ds-lock{ padding:14px 8px; align-items:center; }
+  .ds-lock.ds-unlocked{ display:none; }
+  .datasource-panel.ds-unlocked{ display:block !important; }
 </style><div id="bts-root">
   <div class="topbar">
     <div class="brand">
@@ -481,6 +509,12 @@
       <button class="side-nav-btn" data-tab="subcat"><span class="snb-icon">▤</span><span class="snb-label">Alt Kategori Satış</span></button>
     </nav>
     <div class="sidebar-spacer"></div>
+    <div class="ds-lock" id="ds-lock">
+      <div class="ds-lock-label">🔒 <span>Veri Kaynağı (Kilitli)</span></div>
+      <input type="password" id="ds-lock-input" placeholder="Şifre" autocomplete="off">
+      <button id="ds-lock-submit">Aç</button>
+      <div class="ds-lock-error" id="ds-lock-error"></div>
+    </div>
     <div class="datasource-panel">
       <div class="rule"><div class="holes"><span></span><span></span><span></span></div><div class="line"></div><div class="label">⭱ Veri Kaynağı</div></div>
       <div class="ds-body">
@@ -1744,5 +1778,26 @@ function init(){
 
 if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
 
+})();
+
+(function(){
+  var CORRECT_PASSWORD = "2021";
+  var lockBox = document.getElementById('ds-lock');
+  var panel = document.querySelector('.datasource-panel');
+  var input = document.getElementById('ds-lock-input');
+  var submitBtn = document.getElementById('ds-lock-submit');
+  var errorEl = document.getElementById('ds-lock-error');
+  function tryUnlock(){
+    if(input.value === CORRECT_PASSWORD){
+      lockBox.classList.add('ds-unlocked');
+      panel.classList.add('ds-unlocked');
+    } else {
+      errorEl.textContent = 'Şifre yanlış.';
+      input.value = '';
+      input.focus();
+    }
+  }
+  submitBtn.addEventListener('click', tryUnlock);
+  input.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ tryUnlock(); } });
 })();
 </script>
