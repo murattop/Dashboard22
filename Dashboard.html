@@ -429,14 +429,21 @@ table.dt tbody tr:hover{background:var(--move-bg);}
   <div class="sb-nav" id="sbNav"></div>
   <div class="sb-spacer"></div>
   <div class="sb-upload">
-    <div class="up-label"><svg class="ic ic-sm"><use href="#i-upload"></use></svg>Veri Kaynağı</div>
-    <div class="up-file" id="uploadFileName">—</div>
-    <div class="up-date" id="uploadDate">—</div>
-    <button class="up-btn" id="uploadBtn" onclick="requestUploadAccess()" type="button"><svg class="ic" style="stroke:#fff"><use href="#i-upload"></use></svg>Yeni Excel Yükle</button>
-    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
-    <div class="up-status" id="uploadStatus"></div>
-    <button class="dl-btn" id="downloadBtn" onclick="downloadUpdatedFile()"><svg class="ic" style="stroke:#fff"><use href="#i-download"></use></svg>Bu Veriyle Dosyayı İndir</button>
-    <div class="up-hint">Veri değiştirme şifreyle korunur. İndirdiğiniz dosyada bu ekrandaki güncel veri gömülü olarak kalır — kime gönderirseniz gönderin, açan kişi aynı veriyi görür.</div>
+    <div id="sbUploadLocked">
+      <button class="up-btn" id="sbUploadLockBtn" onclick="requestPanelAccess()" type="button" style="background:rgba(255,255,255,.08);">
+        <svg class="ic" style="stroke:#fff"><use href="#i-lock"></use></svg>Veri Kaynağı
+      </button>
+    </div>
+    <div id="sbUploadPanel" style="display:none;">
+      <div class="up-label"><svg class="ic ic-sm"><use href="#i-upload"></use></svg>Veri Kaynağı</div>
+      <div class="up-file" id="uploadFileName">—</div>
+      <div class="up-date" id="uploadDate">—</div>
+      <button class="up-btn" id="uploadBtn" onclick="requestUploadAccess()" type="button"><svg class="ic" style="stroke:#fff"><use href="#i-upload"></use></svg>Yeni Excel Yükle</button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+      <div class="up-status" id="uploadStatus"></div>
+      <button class="dl-btn" id="downloadBtn" onclick="downloadUpdatedFile()"><svg class="ic" style="stroke:#fff"><use href="#i-download"></use></svg>Bu Veriyle Dosyayı İndir</button>
+      <div class="up-hint">Veri değiştirme şifreyle korunur. İndirdiğiniz dosyada bu ekrandaki güncel veri gömülü olarak kalır — kime gönderirseniz gönderin, açan kişi aynı veriyi görür.</div>
+    </div>
   </div>
 </nav>
 
@@ -1544,6 +1551,46 @@ function setUploadStatus(msg, cls){
   const el = document.getElementById('uploadStatus');
   el.textContent = msg;
   el.className = 'up-status' + (cls?(' '+cls):'');
+}
+
+/* ---- Veri kaynağı panelini gizle/göster: şifreyle açılır ---- */
+function requestPanelAccess(){
+  document.getElementById('globalModalRoot').innerHTML = `
+  <div class="modalbg" onclick="closePanelAuthModal(event)">
+    <div class="modal" style="max-width:380px; text-align:center;" onclick="event.stopPropagation()">
+      <button class="modalclose" onclick="closePanelAuthModal()">${icon('x')}Kapat</button>
+      <div class="lock-icon" style="margin:6px auto 16px;">${icon('lock')}</div>
+      <h3 style="margin-bottom:6px;">Veri Kaynağı Erişimi</h3>
+      <p class="sub" style="margin-bottom:22px;">Veri kaynağı bilgilerini görmek için şifre gerekir.</p>
+      <form id="panelAuthForm" onsubmit="return submitPanelAuth(event)">
+        <input type="password" id="panelAuthPassword" placeholder="Şifre" autocomplete="off"
+          style="width:100%;text-align:center;letter-spacing:.14em;font-family:'IBM Plex Mono',monospace;font-size:15px;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--panel2);color:var(--ink);margin-bottom:10px;box-sizing:border-box;">
+        <button type="submit" style="width:100%;padding:12px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;font-size:13.5px;cursor:pointer;">Onayla</button>
+      </form>
+      <div id="panelAuthError" style="color:var(--critical);font-size:12px;margin-top:12px;min-height:16px;font-weight:600;"></div>
+    </div>
+  </div>`;
+  const inp = document.getElementById('panelAuthPassword');
+  inp.focus();
+}
+function submitPanelAuth(e){
+  e.preventDefault();
+  const inp = document.getElementById('panelAuthPassword');
+  const val = (inp.value||'').trim();
+  if(val === UPLOAD_PASSWORD){
+    uploadUnlocked = true;
+    document.getElementById('sbUploadLocked').style.display = 'none';
+    document.getElementById('sbUploadPanel').style.display = '';
+    closePanelAuthModal();
+  } else {
+    document.getElementById('panelAuthError').textContent = 'Hatalı şifre, tekrar deneyin.';
+    inp.value = '';
+    inp.focus();
+  }
+  return false;
+}
+function closePanelAuthModal(e){
+  document.getElementById('globalModalRoot').innerHTML = '';
 }
 
 /* ---- Veri kaynağı şifre koruması: yükleme yetkisi olmadan dosya seçilemez ---- */
